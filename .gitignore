@@ -9,3 +9,11 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 coverage
+
+# Copied from node_modules by scripts/sync-sqlite-assets.ts
+public/sqlite/
+
+# Never commit secrets that happen to be sitting in the working tree
+recovery-codes.txt
+*.key
+*.pem

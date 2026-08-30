@@ -1,62 +1,31 @@
+import { Database } from "lucide-react";
 import { Playground } from "@/components/playground";
-import { SAMPLE_QUERIES } from "@/lib/sample-queries";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export default function HomePage() {
   return (
-    <main className="page-shell">
-      <section className="hero">
-        <span className="eyebrow">Public Demo</span>
-        <h1>Query a live Postgres sandbox.</h1>
-        <p>
-          This playground runs read-only SQL against a seeded commerce dataset.
-          It is built for Vercel, so query execution stays server-side and
-          responses come back as simple tables.
-        </p>
-      </section>
+    <div className="mx-auto flex w-full max-w-[110rem] flex-col gap-4 p-4 sm:gap-5 sm:p-6">
+      <header className="flex items-start justify-between gap-4">
+        <div className="flex items-start gap-3">
+          <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-lg border bg-card">
+            <Database className="size-4" />
+          </span>
+          <div>
+            <h1 className="text-lg font-semibold tracking-tight sm:text-xl">
+              SQL Playground
+            </h1>
+            <p className="text-sm text-balance text-muted-foreground">
+              A Superstore database of your own. Every query runs in your browser, so
+              nothing you do here reaches anyone else.
+            </p>
+          </div>
+        </div>
+        <ThemeToggle />
+      </header>
 
-      <div className="grid">
-        <Playground sampleQueries={SAMPLE_QUERIES} />
-
-        <aside className="grid">
-          <section className="panel">
-            <div className="panel-header">
-              <h3>Demo tables</h3>
-              <span className="panel-subtle">3 tables</span>
-            </div>
-            <ul className="note-list">
-              <li>
-                <strong>customers</strong>: account profile, tier, city,
-                created date
-              </li>
-              <li>
-                <strong>products</strong>: sku, category, unit price,
-                inventory
-              </li>
-              <li>
-                <strong>orders</strong>: order facts with joins to customers and
-                products
-              </li>
-            </ul>
-          </section>
-
-          <section className="panel">
-            <div className="panel-header">
-              <h3>Rules</h3>
-              <span className="panel-subtle">Read-only</span>
-            </div>
-            <ul className="note-list">
-              <li>Only single-statement read queries are accepted.</li>
-              <li>Writes, schema changes, and transaction commands are blocked.</li>
-              <li>Each request has a row cap, length cap, and timeout.</li>
-            </ul>
-          </section>
-        </aside>
-      </div>
-
-      <p className="footer">
-        Seed the demo schema with <code>db/seed.sql</code> and set{" "}
-        <code>DATABASE_URL</code> before deploying to Vercel.
-      </p>
-    </main>
+      <main>
+        <Playground />
+      </main>
+    </div>
   );
 }
