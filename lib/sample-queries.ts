@@ -1,47 +1,90 @@
 import type { SampleQuery } from "@/lib/types";
 
+export const DEFAULT_QUERY = `select
+  o.region,
+  count(distinct o.id) as orders,
+  round(sum(i.sales), 2) as sales,
+  round(sum(i.profit), 2) as profit
+from orders o
+join order_items i on i.order_id = o.id
+group by o.region
+order by profit desc;`;
+
 export const SAMPLE_QUERIES: SampleQuery[] = [
   {
-    id: "recent-orders",
-    title: "Recent orders by customer",
-    description: "Join customers and products to inspect the newest orders.",
-    sql: `select
-  o.id,
-  c.name as customer_name,
-  p.name as product_name,
-  o.quantity,
-  o.ordered_at
-from orders o
-join customers c on c.id = o.customer_id
-join products p on p.id = o.product_id
-order by o.ordered_at desc
-limit 12;`,
+    id: "browse",
+    title: "Browse the products",
+    description: "A plain SELECT with a filter and a limit.",
+    sql: `select name, category, sub_category
+from products
+where category = 'Furniture'
+limit 20;`,
   },
   {
-    id: "revenue-by-category",
-    title: "Revenue by category",
-    description: "Aggregate estimated revenue grouped by product category.",
+    id: "aggregate",
+    title: "Group and aggregate",
+    description: "Count and sum per category.",
     sql: `select
   p.category,
-  round(sum(o.quantity * p.unit_price), 2) as revenue
-from orders o
-join products p on p.id = o.product_id
+  count(*) as line_items,
+  round(sum(i.sales), 2) as sales
+from order_items i
+join products p on p.id = i.product_id
 group by p.category
-order by revenue desc;`,
+order by sales desc;`,
   },
   {
-    id: "vip-customers",
-    title: "VIP customer snapshot",
-    description: "See higher-tier customers and how many orders they placed.",
+    id: "join",
+    title: "Join four tables",
+    description: "Customers, orders, items and products together.",
     sql: `select
-  c.name,
-  c.city,
-  c.tier,
-  count(o.id) as orders_placed
+  c.name as customer,
+  o.order_date,
+  p.name as product,
+  i.quantity,
+  i.sales
 from customers c
-left join orders o on o.customer_id = c.id
-where c.tier in ('gold', 'platinum')
-group by c.id
-order by orders_placed desc, c.name asc;`,
+join orders o on o.customer_id = c.id
+join order_items i on i.order_id = o.id
+join products p on p.id = i.product_id
+order by o.order_date desc
+limit 25;`,
+  },
+  {
+    id: "loss-makers",
+    title: "Find the loss makers",
+    description: "HAVING on an aggregate, over a join.",
+    sql: `select
+  p.name as product,
+  round(sum(i.profit), 2) as profit,
+  sum(i.quantity) as units
+from order_items i
+join products p on p.id = i.product_id
+group by p.id
+having sum(i.profit) < -1000
+order by profit;`,
+  },
+  {
+    id: "dates",
+    title: "Work with dates",
+    description: "Dates are stored ISO, so strftime works.",
+    sql: `select
+  strftime('%Y', o.order_date) as year,
+  count(distinct o.id) as orders,
+  round(sum(i.sales), 2) as sales
+from orders o
+join order_items i on i.order_id = o.id
+group by year
+order by year;`,
+  },
+  {
+    id: "write",
+    title: "Change something",
+    description: "This is your own database - writes are allowed.",
+    sql: `update products
+set name = 'My renamed product'
+where id = 'FUR-BO-10001798';
+
+select id, name from products where id = 'FUR-BO-10001798';`,
   },
 ];
