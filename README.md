@@ -39,6 +39,9 @@ npm install
 npm run dev
 ```
 
+The interface is [shadcn/ui](https://ui.shadcn.com) on Tailwind v4, and follows
+the system light/dark setting with a toggle that is remembered per browser.
+
 ## Rebuilding the dataset
 
 `public/seed.sqlite` is committed, so builds and deploys never touch the CSV.

@@ -6,45 +6,69 @@ import { EditorState, Compartment } from "@codemirror/state";
 import { sql, SQLite } from "@codemirror/lang-sql";
 import { defaultKeymap, history, historyKeymap } from "@codemirror/commands";
 import { autocompletion, completionKeymap } from "@codemirror/autocomplete";
+import { HighlightStyle, syntaxHighlighting } from "@codemirror/language";
+import { tags } from "@lezer/highlight";
 import type { TableInfo } from "@/lib/types";
+
+/**
+ * Colours come from the shadcn palette rather than a canned CodeMirror theme,
+ * so the editor follows the light/dark switch with the rest of the page.
+ */
+const highlight = HighlightStyle.define([
+  { tag: tags.keyword, color: "var(--cm-keyword)", fontWeight: "500" },
+  { tag: tags.string, color: "var(--cm-string)" },
+  { tag: tags.number, color: "var(--cm-number)" },
+  { tag: [tags.function(tags.variableName), tags.standard(tags.name)], color: "var(--cm-function)" },
+  { tag: tags.comment, color: "var(--muted-foreground)", fontStyle: "italic" },
+  { tag: tags.operator, color: "var(--cm-operator)" },
+  { tag: [tags.punctuation, tags.separator], color: "var(--muted-foreground)" },
+  { tag: tags.null, color: "var(--cm-keyword)" },
+]);
 
 const theme = EditorView.theme({
   "&": {
-    fontSize: "0.95rem",
+    fontSize: "13px",
     backgroundColor: "transparent",
-    color: "var(--ink)",
+    color: "var(--foreground)",
   },
   "&.cm-focused": { outline: "none" },
   ".cm-content": {
-    fontFamily: "var(--mono)",
-    padding: "14px 0",
-    caretColor: "var(--accent)",
-    minHeight: "180px",
+    fontFamily: "var(--font-mono)",
+    padding: "12px 0",
+    caretColor: "var(--foreground)",
+    minHeight: "168px",
+    lineHeight: "1.7",
   },
-  ".cm-gutters": {
-    backgroundColor: "transparent",
-    border: "none",
-    color: "var(--ink-faint)",
-    fontFamily: "var(--mono)",
-  },
-  ".cm-activeLine": { backgroundColor: "transparent" },
-  ".cm-cursor": { borderLeftColor: "var(--accent)", borderLeftWidth: "2px" },
+  ".cm-line": { padding: "0 2px" },
+  ".cm-placeholder": { color: "var(--muted-foreground)" },
+  ".cm-cursor": { borderLeftColor: "var(--foreground)", borderLeftWidth: "2px" },
   ".cm-selectionBackground, &.cm-focused .cm-selectionBackground, ::selection": {
-    backgroundColor: "var(--accent-wash)",
+    backgroundColor: "color-mix(in oklch, var(--primary) 18%, transparent)",
   },
+  ".cm-tooltip": { border: "none", backgroundColor: "transparent" },
   ".cm-tooltip-autocomplete": {
-    fontFamily: "var(--mono)",
-    fontSize: "0.85rem",
-    border: "1px solid var(--line)",
-    borderRadius: "10px",
-    backgroundColor: "var(--surface)",
-    boxShadow: "0 12px 32px rgba(31, 41, 33, 0.16)",
-    overflow: "hidden",
+    fontFamily: "var(--font-mono)",
+    fontSize: "12px",
   },
-  ".cm-tooltip-autocomplete ul li[aria-selected]": {
+  ".cm-tooltip-autocomplete > ul": {
+    border: "1px solid var(--border)",
+    borderRadius: "var(--radius-md)",
+    backgroundColor: "var(--popover)",
+    color: "var(--popover-foreground)",
+    boxShadow: "0 8px 24px oklch(0 0 0 / 0.12)",
+    maxHeight: "16rem",
+    padding: "4px",
+  },
+  ".cm-tooltip-autocomplete > ul > li": {
+    borderRadius: "var(--radius-sm)",
+    padding: "4px 8px",
+  },
+  ".cm-tooltip-autocomplete > ul > li[aria-selected]": {
     backgroundColor: "var(--accent)",
-    color: "var(--surface)",
+    color: "var(--accent-foreground)",
   },
+  ".cm-completionIcon": { display: "none" },
+  ".cm-completionDetail": { color: "var(--muted-foreground)", fontStyle: "normal" },
 });
 
 /** Turns the live schema into CodeMirror's table/column completion source. */
@@ -82,7 +106,7 @@ export function SqlEditor({
         doc: value,
         extensions: [
           history(),
-          autocompletion({ activateOnTyping: true, maxRenderedOptions: 12 }),
+          autocompletion({ activateOnTyping: true }),
           keymap.of([
             {
               key: "Mod-Enter",
@@ -97,6 +121,7 @@ export function SqlEditor({
             ...defaultKeymap,
           ]),
           language.current.of(sql({ dialect: SQLite, upperCaseKeywords: false })),
+          syntaxHighlighting(highlight),
           EditorView.lineWrapping,
           placeholderExt("Write any SQL here, then press Run."),
           theme,
@@ -144,5 +169,5 @@ export function SqlEditor({
     });
   }, [schema]);
 
-  return <div className="sql-editor" ref={host} />;
+  return <div className="px-4" data-testid="sql-editor" ref={host} />;
 }
