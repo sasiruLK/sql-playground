@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { Inter, JetBrains_Mono } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { cn } from "@/lib/utils";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
@@ -51,6 +53,11 @@ export default function RootLayout({
       </head>
       <body>
         <TooltipProvider>{children}</TooltipProvider>
+        {/* Both only collect on Vercel, which serves the scripts they inject
+            from /_vercel/. Anywhere else - a local dev run included - that
+            request 404s and nothing is reported. */}
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );

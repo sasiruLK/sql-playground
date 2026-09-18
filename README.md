@@ -84,6 +84,12 @@ Deploys to Vercel with no configuration and no environment variables: the whole
 app is static. `npm run build` copies the SQLite WASM runtime out of
 `node_modules` into `public/sqlite/` (gitignored) and then builds the site.
 
+Web Analytics and Speed Insights are wired into the root layout. Both still
+have to be turned on for the project under Vercel's Analytics and Speed
+Insights tabs - until they are, the scripts 404 and no data is collected.
+Neither reports from a local run, and neither sees anything a student types:
+queries run entirely in the browser and never leave it.
+
 ## How a student's database works
 
 - On first visit the browser downloads `seed.sqlite` (~190 KB, cached) and copies
