@@ -230,7 +230,7 @@ export function Playground() {
               )}
 
               <div className="mt-4 border-t pt-3">
-                <h3 className="px-2 pb-2 text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
+                <h3 className="meta-label px-2 pb-2">
                   Examples
                 </h3>
                 <div className="space-y-1">

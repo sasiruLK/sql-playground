@@ -1,11 +1,14 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter, JetBrains_Mono } from "next/font/google";
 import { cn } from "@/lib/utils";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
-const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
-const geistMono = Geist_Mono({ subsets: ["latin"], variable: "--font-mono" });
+// Inter is what the curriculum site (da-lecs.vercel.app) sets everything in.
+// It has no monospace of its own, so SQL gets JetBrains Mono, which shares
+// Inter's upright, open shapes at the sizes the editor uses.
+const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
+const jetbrainsMono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono" });
 
 export const metadata: Metadata = {
   title: "SQL Playground",
@@ -41,7 +44,7 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={cn("font-sans", geist.variable, geistMono.variable)}
+      className={cn("font-sans", inter.variable, jetbrainsMono.variable)}
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />

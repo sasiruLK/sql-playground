@@ -49,85 +49,89 @@
 }
 
 :root {
-    --background: oklch(1 0 0);
-    --foreground: oklch(0.145 0 0);
-    --card: oklch(1 0 0);
-    --card-foreground: oklch(0.145 0 0);
-    --popover: oklch(1 0 0);
-    --popover-foreground: oklch(0.145 0 0);
-    --primary: oklch(0.205 0 0);
-    --primary-foreground: oklch(0.985 0 0);
-    --secondary: oklch(0.97 0 0);
-    --secondary-foreground: oklch(0.205 0 0);
-    --muted: oklch(0.97 0 0);
-    --muted-foreground: oklch(0.556 0 0);
-    --accent: oklch(0.97 0 0);
-    --accent-foreground: oklch(0.205 0 0);
-    --destructive: oklch(0.577 0.245 27.325);
-    --border: oklch(0.922 0 0);
-    --input: oklch(0.922 0 0);
-    --ring: oklch(0.708 0 0);
-    --chart-1: oklch(0.87 0 0);
-    --chart-2: oklch(0.556 0 0);
-    --chart-3: oklch(0.439 0 0);
-    --chart-4: oklch(0.371 0 0);
-    --chart-5: oklch(0.269 0 0);
-    --radius: 0.625rem;
-    --sidebar: oklch(0.985 0 0);
-    --sidebar-foreground: oklch(0.145 0 0);
-    --sidebar-primary: oklch(0.205 0 0);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.97 0 0);
-    --sidebar-accent-foreground: oklch(0.205 0 0);
-    --sidebar-border: oklch(0.922 0 0);
-    --sidebar-ring: oklch(0.708 0 0);
+    /* Light counterpart of the curriculum palette: the same cyan and crimson,
+       deepened until they hold contrast on white. */
+    --background: #ffffff;
+    --foreground: #06070d;
+    --card: #ffffff;
+    --card-foreground: #06070d;
+    --popover: #ffffff;
+    --popover-foreground: #06070d;
+    --primary: #00727f;
+    --primary-foreground: #ffffff;
+    --secondary: #f3f4f7;
+    --secondary-foreground: #06070d;
+    --muted: #f3f4f7;
+    --muted-foreground: #5b6273;
+    --accent: #eef8fa;
+    --accent-foreground: #00535d;
+    --destructive: #c4004e;
+    --border: #e3e5ec;
+    --input: #d7dae3;
+    --ring: #00727f;
+    --chart-1: #00727f;
+    --chart-2: #c4004e;
+    --chart-3: #067a52;
+    --chart-4: #5b6273;
+    --chart-5: #06070d;
+    --radius: 0.375rem;
+    --sidebar: #fafbfc;
+    --sidebar-foreground: #06070d;
+    --sidebar-primary: #00727f;
+    --sidebar-primary-foreground: #ffffff;
+    --sidebar-accent: #eef8fa;
+    --sidebar-accent-foreground: #00535d;
+    --sidebar-border: #e3e5ec;
+    --sidebar-ring: #00727f;
 
     /* SQL syntax colours, kept in the same token system as the rest. */
-    --cm-keyword: oklch(0.48 0.18 275);
-    --cm-string: oklch(0.5 0.14 150);
-    --cm-number: oklch(0.55 0.16 45);
-    --cm-function: oklch(0.5 0.15 230);
-    --cm-operator: oklch(0.55 0.02 260);
+    --cm-keyword: #00707f;
+    --cm-string: #067a52;
+    --cm-number: #c4004e;
+    --cm-function: #2a6f97;
+    --cm-operator: #5b6273;
 }
 
 .dark {
-    --background: oklch(0.145 0 0);
-    --foreground: oklch(0.985 0 0);
-    --card: oklch(0.205 0 0);
-    --card-foreground: oklch(0.985 0 0);
-    --popover: oklch(0.205 0 0);
-    --popover-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.922 0 0);
-    --primary-foreground: oklch(0.205 0 0);
-    --secondary: oklch(0.269 0 0);
-    --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.269 0 0);
-    --muted-foreground: oklch(0.708 0 0);
-    --accent: oklch(0.269 0 0);
-    --accent-foreground: oklch(0.985 0 0);
-    --destructive: oklch(0.704 0.191 22.216);
-    --border: oklch(1 0 0 / 10%);
-    --input: oklch(1 0 0 / 15%);
-    --ring: oklch(0.556 0 0);
-    --chart-1: oklch(0.87 0 0);
-    --chart-2: oklch(0.556 0 0);
-    --chart-3: oklch(0.439 0 0);
-    --chart-4: oklch(0.371 0 0);
-    --chart-5: oklch(0.269 0 0);
-    --sidebar: oklch(0.205 0 0);
-    --sidebar-foreground: oklch(0.985 0 0);
-    --sidebar-primary: oklch(0.488 0.243 264.376);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.269 0 0);
-    --sidebar-accent-foreground: oklch(0.985 0 0);
-    --sidebar-border: oklch(1 0 0 / 10%);
-    --sidebar-ring: oklch(0.556 0 0);
+    /* Lifted from da-lecs.vercel.app: --bg-plasma, --glass-surface,
+       --accent-neon-cyan, --accent-neon-magenta and the text ramp. */
+    --background: #020205;
+    --foreground: #ffffff;
+    --card: #04060e;
+    --card-foreground: #ffffff;
+    --popover: #04060e;
+    --popover-foreground: #ffffff;
+    --primary: #00f5ff;
+    --primary-foreground: #020205;
+    --secondary: #0c0f18;
+    --secondary-foreground: #ffffff;
+    --muted: #0c0f18;
+    --muted-foreground: #a2a9bc;
+    --accent: #111520;
+    --accent-foreground: #ffffff;
+    --destructive: #ff0055;
+    --border: oklch(1 0 0 / 12%);
+    --input: oklch(1 0 0 / 18%);
+    --ring: #00f5ff;
+    --chart-1: #00f5ff;
+    --chart-2: #ff0055;
+    --chart-3: #00ffaa;
+    --chart-4: #a2a9bc;
+    --chart-5: #6b7180;
+    --sidebar: #04060e;
+    --sidebar-foreground: #ffffff;
+    --sidebar-primary: #00f5ff;
+    --sidebar-primary-foreground: #020205;
+    --sidebar-accent: #111520;
+    --sidebar-accent-foreground: #ffffff;
+    --sidebar-border: oklch(1 0 0 / 12%);
+    --sidebar-ring: #00f5ff;
 
-    --cm-keyword: oklch(0.75 0.14 285);
-    --cm-string: oklch(0.78 0.13 150);
-    --cm-number: oklch(0.8 0.12 60);
-    --cm-function: oklch(0.75 0.12 230);
-    --cm-operator: oklch(0.7 0.02 260);
+    --cm-keyword: #00f5ff;
+    --cm-string: #00ffaa;
+    --cm-number: #ff5c8a;
+    --cm-function: #7fe9f2;
+    --cm-operator: #6b7180;
 }
 
 @layer base {
@@ -136,9 +140,23 @@
     }
   body {
     @apply bg-background text-foreground;
+    /* Inter is set slightly tight on the curriculum site (-0.01em); without
+       this the UI reads wider and looser than the pages it sits beside. */
+    letter-spacing: -0.01em;
     }
   html {
     @apply font-sans;
+    }
+  /* Headings there run tight and heavy rather than large. */
+  h1, h2, h3 {
+    letter-spacing: -0.015em;
+    }
+  /* Small uppercase meta text is the site's one signature move: 12px, 600,
+     and tracked wide open. Letter-spacing must be positive here - the body
+     rule above would otherwise crush it. */
+  .meta-label {
+    @apply text-[11px] font-semibold uppercase text-muted-foreground;
+    letter-spacing: 0.08em;
     }
 }
 @layer base {
