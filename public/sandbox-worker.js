@@ -9,7 +9,9 @@
  */
 import sqlite3InitModule from "./sqlite/index.mjs";
 
-const DB_PATH = "/superstore.sqlite";
+// Changing this name is how a new dataset reaches students who already have a
+// Sandbox: their old database no longer matches, so the new Seed is imported.
+const DB_PATH = "/lankakart.sqlite";
 const SEED_URL = "/seed.sqlite";
 const POOL_NAME = "sql-playground";
 
@@ -108,6 +110,12 @@ async function open({ forceReseed }) {
   db = null;
 
   if (pool) {
+    // A database left behind by an earlier dataset would otherwise sit in the
+    // pool forever, holding a slot nothing can ever open again.
+    for (const name of pool.getFileNames()) {
+      if (name !== DB_PATH) pool.unlink(name);
+    }
+
     const needsSeed = forceReseed || !pool.getFileNames().includes(DB_PATH);
 
     if (needsSeed) {

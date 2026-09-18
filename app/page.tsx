@@ -15,8 +15,8 @@ export default function HomePage() {
               SQL Playground
             </h1>
             <p className="text-sm text-balance text-muted-foreground">
-              A Superstore database of your own. Every query runs in your browser, so
-              nothing you do here reaches anyone else.
+              The LankaKart retail database, yours alone. Every query runs in your
+              browser, so nothing you do here reaches anyone else.
             </p>
           </div>
         </div>

@@ -10,7 +10,7 @@ const geistMono = Geist_Mono({ subsets: ["latin"], variable: "--font-mono" });
 export const metadata: Metadata = {
   title: "SQL Playground",
   description:
-    "Practise SQL against the Superstore dataset in a private database that runs entirely in your browser.",
+    "Practise SQL against the LankaKart retail dataset in a private database that runs entirely in your browser.",
 };
 
 export const viewport: Viewport = {

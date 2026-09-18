@@ -1,6 +1,6 @@
 # SQL Playground
 
-A teaching tool where ~100 students each run arbitrary SQL (including destructive DML) against their own private copy of the Superstore dataset, without affecting each other.
+A teaching tool where ~100 students each run arbitrary SQL (including destructive DML) against their own private copy of the LankaKart retail dataset, without affecting each other.
 
 ## Language
 
@@ -9,7 +9,7 @@ One student's private, mutable copy of the database. Every browser gets its own;
 _Avoid_: Session, user database, instance
 
 **Seed**:
-The pristine, normalized Superstore dataset a fresh Sandbox starts from. Immutable; the single source of truth for what "original" means.
+The pristine LankaKart dataset a fresh Sandbox starts from, built from the workbook. Immutable; the single source of truth for what "original" means.
 _Avoid_: Fixture, dump, initial data
 
 **Reset**:

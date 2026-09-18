@@ -1,90 +1,142 @@
 import type { SampleQuery } from "@/lib/types";
 
 export const DEFAULT_QUERY = `select
-  o.region,
-  count(distinct o.id) as orders,
-  round(sum(i.sales), 2) as sales,
-  round(sum(i.profit), 2) as profit
-from orders o
-join order_items i on i.order_id = o.id
-group by o.region
-order by profit desc;`;
+  c.CategoryName,
+  count(distinct o.OrderID) as orders,
+  sum(i.Quantity) as units,
+  round(sum(i.LineTotal_LKR), 2) as revenue_lkr
+from OrderItems i
+join OrderHeader o on o.OrderID = i.OrderID
+join Products p on p.ProductID = i.ProductID
+join Categories c on c.CategoryID = p.CategoryID
+group by c.CategoryName
+order by revenue_lkr desc;`;
 
 export const SAMPLE_QUERIES: SampleQuery[] = [
   {
     id: "browse",
-    title: "Browse the products",
+    title: "Browse the catalogue",
     description: "A plain SELECT with a filter and a limit.",
-    sql: `select name, category, sub_category
-from products
-where category = 'Furniture'
+    sql: `select ProductName, UnitPrice_LKR, ReorderLevel
+from Products
+where Discontinued = 'No'
+order by UnitPrice_LKR desc
 limit 20;`,
   },
   {
     id: "aggregate",
     title: "Group and aggregate",
-    description: "Count and sum per category.",
+    description: "Revenue per payment method, with a running count.",
     sql: `select
-  p.category,
-  count(*) as line_items,
-  round(sum(i.sales), 2) as sales
-from order_items i
-join products p on p.id = i.product_id
-group by p.category
-order by sales desc;`,
+  PaymentMethod,
+  count(*) as orders,
+  round(avg(OrderTotal_LKR), 2) as avg_order_lkr,
+  round(sum(OrderTotal_LKR), 2) as total_lkr
+from OrderHeader
+where OrderStatus <> 'Cancelled'
+group by PaymentMethod
+order by total_lkr desc;`,
   },
   {
     id: "join",
-    title: "Join four tables",
-    description: "Customers, orders, items and products together.",
+    title: "Join five tables",
+    description: "Customer to order to line to product to supplier.",
     sql: `select
-  c.name as customer,
-  o.order_date,
-  p.name as product,
-  i.quantity,
-  i.sales
-from customers c
-join orders o on o.customer_id = c.id
-join order_items i on i.order_id = o.id
-join products p on p.id = i.product_id
-order by o.order_date desc
+  c.FirstName || ' ' || c.LastName as customer,
+  o.OrderDate,
+  p.ProductName,
+  s.SupplierName,
+  i.Quantity,
+  i.LineTotal_LKR
+from Customers c
+join OrderHeader o on o.CustomerID = c.CustomerID
+join OrderItems i on i.OrderID = o.OrderID
+join Products p on p.ProductID = i.ProductID
+join Suppliers s on s.SupplierID = p.SupplierID
+order by o.OrderDate desc
 limit 25;`,
   },
   {
-    id: "loss-makers",
-    title: "Find the loss makers",
-    description: "HAVING on an aggregate, over a join.",
+    id: "left-join",
+    title: "Find who is missing",
+    description: "Eight customers have never ordered. Only a LEFT JOIN shows them.",
     sql: `select
-  p.name as product,
-  round(sum(i.profit), 2) as profit,
-  sum(i.quantity) as units
-from order_items i
-join products p on p.id = i.product_id
-group by p.id
-having sum(i.profit) < -1000
-order by profit;`,
+  c.CustomerID,
+  c.FirstName || ' ' || c.LastName as customer,
+  c.City,
+  count(o.OrderID) as orders
+from Customers c
+left join OrderHeader o on o.CustomerID = c.CustomerID
+group by c.CustomerID
+having orders = 0
+order by customer;`,
+  },
+  {
+    id: "nulls",
+    title: "Work with NULLs",
+    description: "Processing and cancelled orders have no ship date.",
+    sql: `select
+  OrderStatus,
+  count(*) as orders,
+  sum(ShipDate is null) as awaiting_shipment,
+  round(avg(julianday(ShipDate) - julianday(OrderDate)), 1) as avg_days_to_ship
+from OrderHeader
+group by OrderStatus
+order by orders desc;`,
   },
   {
     id: "dates",
     title: "Work with dates",
     description: "Dates are stored ISO, so strftime works.",
     sql: `select
-  strftime('%Y', o.order_date) as year,
-  count(distinct o.id) as orders,
-  round(sum(i.sales), 2) as sales
-from orders o
-join order_items i on i.order_id = o.id
-group by year
-order by year;`,
+  strftime('%Y-%m', o.OrderDate) as month,
+  count(distinct o.OrderID) as orders,
+  round(sum(i.LineTotal_LKR), 2) as revenue_lkr
+from OrderHeader o
+join OrderItems i on i.OrderID = o.OrderID
+group by month
+order by month;`,
+  },
+  {
+    id: "reorder",
+    title: "Which products need restocking",
+    description: "Aggregate across warehouses, then compare with HAVING.",
+    sql: `select
+  p.ProductName,
+  p.ReorderLevel,
+  sum(st.QuantityOnHand) as on_hand,
+  count(st.WarehouseID) as warehouses
+from Products p
+join Stock st on st.ProductID = p.ProductID
+group by p.ProductID
+having on_hand < p.ReorderLevel
+order by on_hand;`,
+  },
+  {
+    id: "verify",
+    title: "Check the order totals",
+    description: "Rebuild OrderTotal_LKR from the lines and confirm it matches.",
+    sql: `select
+  o.OrderID,
+  o.OrderTotal_LKR,
+  round(sum(i.LineTotal_LKR) + o.ShippingFee_LKR, 2) as rebuilt_lkr
+from OrderHeader o
+join OrderItems i on i.OrderID = o.OrderID
+group by o.OrderID
+order by o.OrderID
+limit 25;`,
   },
   {
     id: "write",
     title: "Change something",
     description: "This is your own database - writes are allowed.",
-    sql: `update products
-set name = 'My renamed product'
-where id = 'FUR-BO-10001798';
+    sql: `update Products
+set UnitPrice_LKR = UnitPrice_LKR * 1.1
+where CategoryID = 'CAT-01';
 
-select id, name from products where id = 'FUR-BO-10001798';`,
+select ProductID, ProductName, UnitPrice_LKR
+from Products
+where CategoryID = 'CAT-01'
+limit 10;`,
   },
 ];

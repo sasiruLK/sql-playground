@@ -268,7 +268,7 @@ export function Playground() {
             <AlertDialogTitle>Restore the original data?</AlertDialogTitle>
             <AlertDialogDescription>
               Everything you have changed in your own database will be discarded and
-              the Superstore dataset put back as it was. Your query history is kept.
+              the LankaKart dataset put back as it was. Your query history is kept.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

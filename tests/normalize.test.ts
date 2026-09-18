@@ -1,181 +1,166 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { normalizeSuperstore, toIsoDate } from "@/lib/seed/normalize";
+import { fromExcelSerial, normalizeWorkbook } from "@/lib/seed/normalize";
+import { TABLES } from "@/lib/seed/schema";
+import type { Workbook } from "@/lib/seed/xlsx";
 
-const HEADER = [
-  "Row ID",
-  "Order ID",
-  "Order Date",
-  "Ship Date",
-  "Ship Mode",
-  "Customer ID",
-  "Customer Name",
-  "Segment",
-  "Country",
-  "City",
-  "State",
-  "Postal Code",
-  "Region",
-  "Product ID",
-  "Category",
-  "Sub-Category",
-  "Product Name",
-  "Sales",
-  "Quantity",
-  "Discount",
-  "Profit",
-];
+/** One valid row per table, so a test only has to state what it changes. */
+const ROWS: Record<string, string[]> = {
+  Categories: ["CAT-01", "Electronics", "Gadgets and accessories"],
+  Suppliers: [
+    "SUP-01",
+    "TechLanka Distributors",
+    "Ruwan Jayasuriya",
+    "011-2547890",
+    "sales@techlanka.lk",
+    "Colombo",
+    "Sri Lanka",
+  ],
+  Customers: [
+    "CUST-1001",
+    "Ruwan",
+    "Perera",
+    "M",
+    "ruwan.perera95@yahoo.com",
+    "072-2719583",
+    "Gampaha",
+    "Gampaha",
+    "45155",
+  ],
+  Warehouses: ["WH-01", "Colombo Main Warehouse", "Colombo"],
+  Products: [
+    "PROD-101",
+    "Wireless Optical Mouse",
+    "CAT-01",
+    "SUP-01",
+    "4500",
+    "3100",
+    "25",
+    "No",
+  ],
+  OrderHeader: [
+    "ORD-10188",
+    "CUST-1001",
+    "45663",
+    "45667",
+    "Delivered",
+    "Mobile Wallet",
+    "Galle",
+    "450",
+    "69540",
+  ],
+  OrderItems: ["ITM-50001", "ORD-10188", "PROD-101", "3", "690", "2070"],
+  Stock: ["STK-5001", "PROD-101", "WH-01", "161", "46247"],
+};
 
-function row(overrides: Record<string, string> = {}): string[] {
-  const base: Record<string, string> = {
-    "Row ID": "1",
-    "Order ID": "CA-2016-152156",
-    "Order Date": "11/8/2016",
-    "Ship Date": "11/11/2016",
-    "Ship Mode": "Second Class",
-    "Customer ID": "CG-12520",
-    "Customer Name": "Claire Gute",
-    Segment: "Consumer",
-    Country: "United States",
-    City: "Henderson",
-    State: "Kentucky",
-    "Postal Code": "42420",
-    Region: "South",
-    "Product ID": "FUR-BO-10001798",
-    Category: "Furniture",
-    "Sub-Category": "Bookcases",
-    "Product Name": "Bush Somerset Bookcase",
-    Sales: "261.96",
-    Quantity: "2",
-    Discount: "0",
-    Profit: "41.9136",
-    ...overrides,
-  };
-  return HEADER.map((column) => base[column] ?? "");
+/** A workbook with every sheet the schema needs, before any test edits it. */
+function workbook(overrides: Record<string, string[][]> = {}): Workbook {
+  const sheets: Workbook = new Map();
+
+  for (const table of TABLES) {
+    const header = table.columns.map((column) => column.name);
+    sheets.set(table.name, [header, ...(overrides[table.name] ?? [ROWS[table.name]])]);
+  }
+
+  return sheets;
 }
 
-function normalize(rows: string[][]) {
-  return normalizeSuperstore([HEADER, ...rows]);
+/** The value of one column of the first row of one table. */
+function cell(sheets: Workbook, table: string, column: string) {
+  const columns = TABLES.find((candidate) => candidate.name === table)!.columns;
+  const at = columns.findIndex((candidate) => candidate.name === column);
+
+  return normalizeWorkbook(sheets).get(table)![0][at];
 }
 
-test("converts M/D/YYYY dates to ISO so SQLite date functions work", () => {
-  assert.equal(toIsoDate("11/8/2016"), "2016-11-08");
-  assert.equal(toIsoDate("1/1/2015"), "2015-01-01");
-  assert.equal(toIsoDate("12/31/2017"), "2017-12-31");
-});
+test("reads every table in the workbook", () => {
+  const seed = normalizeWorkbook(workbook());
 
-test("collapses repeated customer rows into one customer", () => {
-  const seed = normalize([
-    row({ "Row ID": "1" }),
-    row({ "Row ID": "2", "Order ID": "CA-2016-999999", City: "Dallas" }),
-  ]);
-
-  assert.equal(seed.customers.length, 1);
-  assert.deepEqual(seed.customers[0], {
-    id: "CG-12520",
-    name: "Claire Gute",
-    segment: "Consumer",
-  });
-});
-
-test("puts the shipping address on the order, not the customer", () => {
-  const seed = normalize([
-    row({ "Row ID": "1", City: "Henderson", State: "Kentucky" }),
-    row({
-      "Row ID": "2",
-      "Order ID": "CA-2016-999999",
-      City: "Dallas",
-      State: "Texas",
-      "Postal Code": "75217",
-      Region: "Central",
-    }),
-  ]);
-
-  assert.equal(seed.orders.length, 2);
-  assert.equal(seed.orders[0].city, "Henderson");
-  assert.equal(seed.orders[1].city, "Dallas");
-  assert.equal(seed.orders[1].state, "Texas");
-  assert.equal(seed.orders[1].region, "Central");
-  assert.ok(!("city" in seed.customers[0]));
-});
-
-test("keeps the first-seen product name when one product id has conflicting names", () => {
-  const seed = normalize([
-    row({ "Row ID": "1", "Product Name": "Wall Clock" }),
-    row({ "Row ID": "2", "Product Name": "DAX Solid Wood Frames" }),
-  ]);
-
-  assert.equal(seed.products.length, 1);
-  assert.equal(seed.products[0].name, "Wall Clock");
-});
-
-test("orders resolve to their customer by id", () => {
-  const seed = normalize([row()]);
-
-  assert.equal(seed.orders.length, 1);
-  assert.deepEqual(seed.orders[0], {
-    id: "CA-2016-152156",
-    customer_id: "CG-12520",
-    order_date: "2016-11-08",
-    ship_date: "2016-11-11",
-    ship_mode: "Second Class",
-    country: "United States",
-    city: "Henderson",
-    state: "Kentucky",
-    postal_code: "42420",
-    region: "South",
-  });
-});
-
-test("treats a blank postal code as null rather than an empty string", () => {
-  const seed = normalize([row({ "Postal Code": "" })]);
-  assert.equal(seed.orders[0].postal_code, null);
-});
-
-test("keeps both line items when the same product appears twice in one order", () => {
-  const seed = normalize([
-    row({ "Row ID": "1", Discount: "0", Sales: "10" }),
-    row({ "Row ID": "2", Discount: "0.2", Sales: "8" }),
-  ]);
-
-  assert.equal(seed.orderItems.length, 2);
   assert.deepEqual(
-    seed.orderItems.map((item) => item.id),
-    [1, 2],
+    [...seed.keys()],
+    TABLES.map((table) => table.name),
   );
-  assert.equal(seed.orderItems[0].discount, 0);
-  assert.equal(seed.orderItems[1].discount, 0.2);
-});
-
-test("parses money and quantity as numbers", () => {
-  const seed = normalize([
-    row({ Sales: "261.96", Quantity: "2", Discount: "0", Profit: "-41.91" }),
+  assert.deepEqual(seed.get("Categories"), [
+    ["CAT-01", "Electronics", "Gadgets and accessories"],
   ]);
-
-  assert.deepEqual(seed.orderItems[0], {
-    id: 1,
-    order_id: "CA-2016-152156",
-    product_id: "FUR-BO-10001798",
-    sales: 261.96,
-    quantity: 2,
-    discount: 0,
-    profit: -41.91,
-  });
 });
 
-test("rejects a blank number rather than seeding it as zero", () => {
-  assert.throws(() => normalize([row({ Sales: "" })]), /Sales/);
-  assert.throws(() => normalize([row({ Profit: "" })]), /Profit/);
+test("converts Excel date serials to ISO dates", () => {
+  assert.equal(fromExcelSerial("45663", "OrderDate"), "2025-01-06");
+  assert.equal(fromExcelSerial("45155", "JoinDate"), "2023-08-17");
+  // 1900-03-01, the first day after Excel's phantom 1900-02-29.
+  assert.equal(fromExcelSerial("61", "JoinDate"), "1900-03-01");
 });
 
-test("rejects a row whose date cannot be parsed", () => {
-  assert.throws(() => normalize([row({ "Order Date": "not-a-date" })]), /date/i);
+test("rejects a date serial from before Excel's leap-year bug", () => {
+  // Serials 1-60 are a day out, so converting them would be silently wrong.
+  assert.throws(() => fromExcelSerial("59", "JoinDate"), /Unrecognised date/);
+  assert.throws(() => fromExcelSerial("", "JoinDate"), /Unrecognised date/);
+  assert.throws(() => fromExcelSerial("45663.5", "JoinDate"), /Unrecognised date/);
 });
 
-test("rejects a file whose header is missing an expected column", () => {
-  const shortHeader = HEADER.filter((column) => column !== "Profit");
+test("keeps money as a number, including fractions", () => {
+  const rows = { OrderItems: [["ITM-1", "ORD-10188", "PROD-101", "2", "593.75", "1187.5"]] };
+
+  assert.equal(cell(workbook(rows), "OrderItems", "UnitPrice_LKR"), 593.75);
+  assert.equal(cell(workbook(rows), "OrderItems", "LineTotal_LKR"), 1187.5);
+});
+
+test("a blank ShipDate becomes NULL", () => {
+  const processing = [...ROWS.OrderHeader];
+  processing[3] = "";
+
+  assert.equal(cell(workbook({ OrderHeader: [processing] }), "OrderHeader", "ShipDate"), null);
+});
+
+test("a blank cell in a required column fails the build", () => {
+  const nameless = [...ROWS.Products];
+  nameless[1] = "";
+
   assert.throws(
-    () => normalizeSuperstore([shortHeader, shortHeader.map(() => "x")]),
-    /Profit/,
+    () => normalizeWorkbook(workbook({ Products: [nameless] })),
+    /Products\.ProductName is blank/,
   );
+});
+
+test("a value outside the allowed set fails the build", () => {
+  const unknownStatus = [...ROWS.OrderHeader];
+  unknownStatus[4] = "Refunded";
+
+  assert.throws(
+    () => normalizeWorkbook(workbook({ OrderHeader: [unknownStatus] })),
+    /OrderHeader\.OrderStatus is "Refunded"/,
+  );
+});
+
+test("a fractional quantity fails the build", () => {
+  const fractional = [...ROWS.OrderItems];
+  fractional[3] = "2.5";
+
+  assert.throws(
+    () => normalizeWorkbook(workbook({ OrderItems: [fractional] })),
+    /Unrecognised number in OrderItems\.Quantity/,
+  );
+});
+
+test("a renamed column fails the build rather than shifting the data", () => {
+  const sheets = workbook();
+  const header = [...sheets.get("Customers")![0]];
+  header[1] = "GivenName";
+  sheets.set("Customers", [header, ROWS.Customers]);
+
+  assert.throws(() => normalizeWorkbook(sheets), /Customers worksheet has columns/);
+});
+
+test("a missing worksheet fails the build", () => {
+  const sheets = workbook();
+  sheets.delete("Stock");
+
+  assert.throws(() => normalizeWorkbook(sheets), /no Stock worksheet/);
+});
+
+test("skips the blank rows a spreadsheet leaves behind", () => {
+  const sheets = workbook({ Warehouses: [ROWS.Warehouses, [], ["", "  ", ""]] });
+
+  assert.equal(normalizeWorkbook(sheets).get("Warehouses")!.length, 1);
 });
